@@ -1,0 +1,30 @@
+{
+  "manifest_version": 3,
+  "name": "X Yapping",
+  "version": "1.0",
+  "description": "Generates reply messages for X posts.",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://x.com/*",
+    "https://api.openai.com/*",
+    "https://fonts.googleapis.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://x.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_end"
+    }
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Generate X Reply"
+  }
+}
