@@ -6,6 +6,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <style>
     body {
       font-family: 'Inter', sans-serif;
@@ -43,8 +44,32 @@
       border-color: #1da1f2;
       box-shadow: 0 0 0 2px rgba(29, 161, 242, 0.2);
     }
-    button {
-      background-color: #1da1f2;
+    select {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 16px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 0.9em;
+      box-sizing: border-box;
+      transition: border-color 0.3s ease;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%231c1e21%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.4-12.8z%22%2F%3E%3C%2Fsvg%3E');
+      background-repeat: no-repeat;
+      background-position: right 10px top 50%;
+      background-size: .65em auto;
+      background-color: #fff;
+    }
+    select:focus {
+      outline: none;
+      border-color: #1da1f2;
+      box-shadow: 0 0 0 2px rgba(29, 161, 242, 0.2);
+    }
+    
+    .generate-button {
+      background-color: #007bff; /* Blue for Generate */
       color: white;
       border: none;
       padding: 10px 16px;
@@ -56,8 +81,26 @@
       margin-bottom: 8px;
       font-weight: 500;
     }
-    button:hover {
-      background-color: #137ebd;
+    .generate-button:hover {
+      background-color: #0056b3;
+    }
+    .icon-button {
+      background-color: transparent;
+      border: none;
+      color: #1da1f2;
+      font-size: 1.2em;
+      cursor: pointer;
+      padding: 5px;
+      transition: color 0.3s ease;
+      width: auto; /* Override button width */
+    }
+    .icon-button:hover {
+      color: #137ebd;
+      background-color: transparent;
+    }
+    .icon-button:disabled {
+      color: #b0d4f5;
+      cursor: not-allowed;
     }
     button:disabled {
       background-color: #b0d4f5;
@@ -80,18 +123,35 @@
     }
     #result {
       margin-top: 12px;
+      padding: 10px;
+      border-radius: 6px;
+      background-color: #fff;
+      border: 1px solid #ddd;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    #result:not(:empty) {
+        display: block;
+    }
+    #result:empty {
+        display: none;
+    }
+    #result:hover:not(:empty) {
+      background-color: #e9e9e9;
     }
   </style>
 </head>
 <body>
-  <h3>X-Yap</h3>
-  <label for="apiKey">OpenAI API Key:</label>
-  <input type="text" id="apiKey" placeholder="Enter your API key">
-  <button id="saveApiKey">Save API Key</button>
-  <button id="generateReply" disabled>Generate Yap!</button>
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+    <h3>X-Yap</h3>
+    <button id="openSettings" class="icon-button" title="Settings"><i class="fas fa-cog"></i></button>
+  </div>
+  <div id="reply-to-info" style="font-size: 0.85em; color: #66757f; margin-bottom: 10px; display: none;"></div>
+  <button id="generateReply" class="generate-button" disabled>Generate Yap!</button>
   <p id="status">Ready</p>
   <p id="result"></p>
   <div id="error" class="error-message" style="display:none;"></div>
+  <p style="text-align: center; margin-top: 10px; font-size: 0.75em; color: #66757f;">Made with <i class="fas fa-heart"></i> by <a href="https://x.com/solasidoXYZ" target="_blank" style="color: #1da1f2; text-decoration: none;">@solasidoXYZ</a></p>
   <script src="popup.js"></script>
 </body>
 </html>

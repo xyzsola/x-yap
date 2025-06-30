@@ -100,21 +100,30 @@ function addReplyButton() {
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "getPostContent") {
     let postContent = "";
+    let postOrigin = "Unknown Origin"; // Initialize postOrigin
     const article = document.querySelector("article");
     const dialog = document.querySelector('div[role="dialog"]');
 
     if (article) {
-      const contentDiv = article.querySelector("div[lang]");
+      const contentDiv = article.querySelector('div[data-testid="tweetText"]'); // More robust selector for tweet content
       if (contentDiv) {
         postContent = contentDiv.innerText;
+      }
+      const authorHandleElement = article.querySelector('div[data-testid="User-Names"] a[role="link"] span'); // More robust selector for author handle
+      if (authorHandleElement) {
+        postOrigin = authorHandleElement.innerText;
       }
     } else if (dialog) {
-      const contentDiv = dialog.querySelector("div[lang]");
+      const contentDiv = dialog.querySelector('div[data-testid="tweetText"]'); // More robust selector for tweet content in dialog
       if (contentDiv) {
         postContent = contentDiv.innerText;
       }
+      const authorHandleElement = dialog.querySelector('div[data-testid="User-Names"] a[role="link"] span'); // More robust selector for author handle in dialog
+      if (authorHandleElement) {
+        postOrigin = authorHandleElement.innerText;
+      }
     }
-    sendResponse({ content: postContent || "No content found" });
+    sendResponse({ content: postContent || "No content found", origin: postOrigin });
   } else if (request.action === "insertReply") {
     const textarea = document.querySelector('textarea[placeholder*="Post your reply"]');
     if (textarea) {
