@@ -66,7 +66,7 @@ async function generateReply(content, persona = 'default', model = 'chatgpt') {
               content: `Generate a reply to this X post: "${content}"`,
             },
           ],
-          max_tokens: 100,
+          max_tokens: 500,
           temperature: 0.7,
         }),
       });
