@@ -4,9 +4,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const errorDisplay = document.getElementById('error');
   const resultDisplay = document.getElementById('result');
   const openSettingsButton = document.getElementById('openSettings');
-  const personaSelect = document.getElementById('persona');
+  
   const selectedModelDisplay = document.getElementById('selected-model-display');
-  // const replyToInfoDisplay = document.getElementById('reply-to-info');
+  const customPromptDropdown = document.getElementById('customPromptDropdown');
+
+  let selectedCustomPromptContent = ''; // To store the content of the selected custom prompt
 
   function updateGenerateButtonState() {
     chrome.storage.sync.get(['openaiApiKey', 'geminiApiKey'], (result) => {
@@ -24,31 +26,45 @@ document.addEventListener('DOMContentLoaded', () => {
     errorDisplay.textContent = ''; // Clear message
   }
 
+  // Function to populate custom prompt dropdown
+  function populateCustomPromptDropdown(customPrompts) {
+    customPromptDropdown.innerHTML = '<option value="">None</option>'; // Default option
+    if (customPrompts && customPrompts.length > 0) {
+      customPrompts.forEach(prompt => {
+        const option = document.createElement('option');
+        option.value = prompt.content; // Store content in value
+        option.textContent = prompt.title;
+        customPromptDropdown.appendChild(option);
+      });
+    }
+  }
+
   // Initial state for generateReplyButton
   updateGenerateButtonState();
 
-  // Load persona and model settings on popup load
-  chrome.storage.sync.get(['selectedPersona', 'selectedModel'], (result) => {
-    if (result.selectedPersona) {
-      personaSelect.value = result.selectedPersona;
-    }
+  // Load model and custom prompts settings on popup load
+  chrome.storage.sync.get(['selectedModel', 'customPrompts'], (result) => {
     if (result.selectedModel) {
       selectedModelDisplay.textContent = `AI Model: ${result.selectedModel}`;
     } else {
       selectedModelDisplay.textContent = `AI Model: chatgpt`; // Default
     }
+    if (result.customPrompts) {
+      populateCustomPromptDropdown(result.customPrompts);
+    }
   });
 
-  // Save persona setting when it changes
-  personaSelect.addEventListener('change', () => {
-    chrome.storage.sync.set({ selectedPersona: personaSelect.value });
+  // Update selectedCustomPromptContent when dropdown changes
+  customPromptDropdown.addEventListener('change', () => {
+    selectedCustomPromptContent = customPromptDropdown.value;
+    console.log('Selected custom prompt content:', selectedCustomPromptContent);
   });
 
   openSettingsButton.addEventListener('click', () => {
     chrome.runtime.openOptionsPage();
   });
 
-  // Listen for changes in storage to update button state and displayed model
+  // Listen for changes in storage to update button state, displayed model, and custom prompts
   chrome.storage.onChanged.addListener((changes, namespace) => {
     if (namespace === 'sync') {
       if (changes.openaiApiKey || changes.geminiApiKey) {
@@ -56,6 +72,9 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       if (changes.selectedModel) {
         selectedModelDisplay.textContent = `AI Model: ${changes.selectedModel.newValue}`;
+      }
+      if (changes.customPrompts) {
+        populateCustomPromptDropdown(changes.customPrompts.newValue);
       }
     }
   });
@@ -82,25 +101,18 @@ document.addEventListener('DOMContentLoaded', () => {
   // Generate reply
   generateReplyButton.addEventListener('click', async () => {
     statusDisplay.textContent = 'Processing...';
-    const selectedPersona = personaSelect.value;
     const selectedModel = (await chrome.storage.sync.get(['selectedModel'])).selectedModel || 'chatgpt';
 
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       if (tabs[0]?.id) {
         chrome.tabs.sendMessage(tabs[0].id, { action: 'getPostContent' }, (response) => {
           if (response && response.content) {
-            // if (response.origin) {
-            //   replyToInfoDisplay.textContent = `${response.origin}`;
-            //   replyToInfoDisplay.style.display = 'block';
-            // } else {
-            //   replyToInfoDisplay.style.display = 'none';
-            // }
             console.log('Sending message to background.js with model:', selectedModel);
             chrome.runtime.sendMessage({ 
               action: 'generateReply', 
               content: response.content, 
-              persona: selectedPersona,
-              model: selectedModel
+              model: selectedModel,
+              customPrompt: selectedCustomPromptContent // Pass the selected custom prompt content
             }, (replyResponse) => {
               if (replyResponse?.reply) {
                 chrome.tabs.sendMessage(tabs[0].id, { action: 'insertReply', reply: replyResponse.reply }, () => {

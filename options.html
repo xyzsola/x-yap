@@ -114,8 +114,30 @@
     <input type="text" id="geminiApiKey" placeholder="Enter your Gemini API key">
   </div>
   
-  <label for="customPrompt">Custom System Prompt:</label>
-  <textarea id="customPrompt" placeholder="Enter your custom system prompt here..."></textarea>
+  <label for="customPrompt">Default Custom System Prompt:</label>
+  <textarea id="customPrompt" placeholder="Enter your default custom system prompt here..."></textarea>
+
+  <hr style="border: 0; height: 1px; background-color: #ddd; margin: 25px 0;">
+
+  <h3>Manage Custom Prompts</h3>
+  <div style="background-color: #fff; padding: 15px; border-radius: 8px; border: 1px solid #eee; margin-bottom: 20px;">
+    <label for="newPromptTitle">Prompt Title:</label>
+    <input type="text" id="newPromptTitle" placeholder="e.g., Professional Tone">
+    
+    <label for="newPromptContent">Prompt Content:</label>
+    <textarea id="newPromptContent" placeholder="Enter the full system prompt content here..."></textarea>
+    
+    <button id="addPrompt" style="background-color: #007bff;">Add New Prompt</button>
+    <button id="cancelEdit" style="background-color: #6c757d; display: none;">Cancel Edit</button>
+  </div>
+
+  <div id="customPromptsList">
+    <h4>Saved Custom Prompts:</h4>
+    <ul id="promptsList" style="list-style: none; padding: 0;">
+      <!-- Custom prompts will be loaded here -->
+    </ul>
+  </div>
+
   <button id="saveSettings">Save Settings</button>
   <p id="status"></p>
   <script src="options.js"></script>

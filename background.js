@@ -1,6 +1,8 @@
 // Function to generate reply using OpenAI API
-async function generateReply(content, persona = 'default', model = 'chatgpt') {
+async function generateReply(content, model = 'chatgpt', customPromptFromPopup = '') {
   console.log('generateReply function called with model:', model);
+  console.log('customPromptFromPopup received:', customPromptFromPopup);
+
   const keysAndPrompt = await new Promise((resolve) => {
     chrome.storage.sync.get(['openaiApiKey', 'geminiApiKey', 'customPrompt'], (result) => {
       resolve(result);
@@ -9,28 +11,20 @@ async function generateReply(content, persona = 'default', model = 'chatgpt') {
 
   const apiKey = model.startsWith('gemini') ? keysAndPrompt.geminiApiKey : keysAndPrompt.openaiApiKey;
   console.log('Using API Key for model:', model, 'Key exists:', !!apiKey);
-  const customPrompt = keysAndPrompt.customPrompt;
-
   if (!apiKey) {
     return `No API key set for ${model}. Please save your API key in the extension popup.`
   }
 
   let system_prompt = 'You are my assistant to create a reply to content X. Create a reply that supports the content or provides an assessment from another point of view, the reply is in English and limits it to a maximum of 250 characters.';
 
-  if (customPrompt) {
-    system_prompt = customPrompt;
+  if (customPromptFromPopup) {
+    system_prompt = customPromptFromPopup;
+    console.log('Using custom prompt from popup:', system_prompt);
+  } else if (keysAndPrompt.customPrompt) { // Otherwise, use the default custom prompt from settings
+    system_prompt = keysAndPrompt.customPrompt;
+    console.log('Using default custom prompt from settings:', system_prompt);
   } else {
-    switch (persona) {
-      case 'pirate':
-        system_prompt = 'You are a pirate. Respond in the persona of a pirate, arrr!';
-        break;
-      case 'shakespeare':
-        system_prompt = 'You are William Shakespeare. Respond in a Shakespearean manner.';
-        break;
-      case 'yoda':
-        system_prompt = 'You are Yoda. Respond in the style of Yoda, you must.';
-        break;
-    }
+    console.log('Using default system prompt.', system_prompt);
   }
 
   try {
@@ -100,7 +94,7 @@ async function generateReply(content, persona = 'default', model = 'chatgpt') {
 // Handle messages
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'generateReply') {
-    generateReply(request.content, request.persona, request.model)
+    generateReply(request.content, request.model, request.customPrompt)
       .then((reply) => {
         sendResponse({ reply });
       })
