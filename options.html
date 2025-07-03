@@ -13,6 +13,8 @@
       padding: 20px;
       background-color: #f0f0f0;
       color: #1c1e21;
+      margin: 0 auto;
+      font-size: 14px;
     }
     h3 {
       margin-top: 0;
@@ -100,8 +102,9 @@
   <label for="model">AI Model:</label>
   <select id="model">
     <option value="chatgpt">ChatGPT</option>
-    <option value="gemini">Gemini</option>
+    <option value="gemini-flash">Gemini Flash</option>
   </select>
+  
   <div id="openai-key-container">
     <label for="apiKey">OpenAI API Key:</label>
     <input type="text" id="apiKey" placeholder="Enter your OpenAI API key">
@@ -110,13 +113,7 @@
     <label for="geminiApiKey">Gemini API Key:</label>
     <input type="text" id="geminiApiKey" placeholder="Enter your Gemini API key">
   </div>
-  <label for="persona">Persona:</label>
-  <select id="persona">
-    <option value="default">Default</option>
-    <option value="pirate">Pirate</option>
-    <option value="shakespeare">Shakespeare</option>
-    <option value="yoda">Yoda</option>
-  </select>
+  
   <label for="customPrompt">Custom System Prompt:</label>
   <textarea id="customPrompt" placeholder="Enter your custom system prompt here..."></textarea>
   <button id="saveSettings">Save Settings</button>

@@ -1,19 +1,21 @@
 // Function to generate reply using OpenAI API
 async function generateReply(content, persona = 'default', model = 'chatgpt') {
+  console.log('generateReply function called with model:', model);
   const keysAndPrompt = await new Promise((resolve) => {
     chrome.storage.sync.get(['openaiApiKey', 'geminiApiKey', 'customPrompt'], (result) => {
       resolve(result);
     });
   });
 
-  const apiKey = model === 'gemini' ? keysAndPrompt.geminiApiKey : keysAndPrompt.openaiApiKey;
+  const apiKey = model.startsWith('gemini') ? keysAndPrompt.geminiApiKey : keysAndPrompt.openaiApiKey;
+  console.log('Using API Key for model:', model, 'Key exists:', !!apiKey);
   const customPrompt = keysAndPrompt.customPrompt;
 
   if (!apiKey) {
     return `No API key set for ${model}. Please save your API key in the extension popup.`
   }
 
-  let system_prompt = 'Kamu adalah asisten saya untuk membuat balasan konten X. Buat balasan yang mendukung isi kontennya atau memberikan penilaian dari sudut pandang yang lain, balasan dalam bahasa inggris dan batasi maksimal 150 huruf';
+  let system_prompt = 'You are my assistant to create a reply to content X. Create a reply that supports the content or provides an assessment from another point of view, the reply is in English and limits it to a maximum of 250 characters.';
 
   if (customPrompt) {
     system_prompt = customPrompt;
@@ -33,8 +35,8 @@ async function generateReply(content, persona = 'default', model = 'chatgpt') {
 
   try {
     let response;
-    if (model === 'gemini') {
-      response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`, {
+    if (model.startsWith('gemini')) {
+      response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -83,7 +85,7 @@ async function generateReply(content, persona = 'default', model = 'chatgpt') {
 
     const data = await response.json();
     let reply;
-    if (model === 'gemini') {
+    if (model.startsWith('gemini')) {
       reply = data.candidates[0]?.content?.parts[0]?.text.trim();
     } else { // chatgpt
       reply = data.choices[0]?.message?.content.trim();

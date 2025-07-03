@@ -4,6 +4,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const errorDisplay = document.getElementById('error');
   const resultDisplay = document.getElementById('result');
   const openSettingsButton = document.getElementById('openSettings');
+  const personaSelect = document.getElementById('persona');
+  const selectedModelDisplay = document.getElementById('selected-model-display');
   // const replyToInfoDisplay = document.getElementById('reply-to-info');
 
   function updateGenerateButtonState() {
@@ -25,14 +27,36 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initial state for generateReplyButton
   updateGenerateButtonState();
 
+  // Load persona and model settings on popup load
+  chrome.storage.sync.get(['selectedPersona', 'selectedModel'], (result) => {
+    if (result.selectedPersona) {
+      personaSelect.value = result.selectedPersona;
+    }
+    if (result.selectedModel) {
+      selectedModelDisplay.textContent = `AI Model: ${result.selectedModel}`;
+    } else {
+      selectedModelDisplay.textContent = `AI Model: chatgpt`; // Default
+    }
+  });
+
+  // Save persona setting when it changes
+  personaSelect.addEventListener('change', () => {
+    chrome.storage.sync.set({ selectedPersona: personaSelect.value });
+  });
+
   openSettingsButton.addEventListener('click', () => {
     chrome.runtime.openOptionsPage();
   });
 
-  // Listen for changes in storage to update button state
+  // Listen for changes in storage to update button state and displayed model
   chrome.storage.onChanged.addListener((changes, namespace) => {
-    if (namespace === 'sync' && (changes.openaiApiKey || changes.geminiApiKey)) {
-      updateGenerateButtonState();
+    if (namespace === 'sync') {
+      if (changes.openaiApiKey || changes.geminiApiKey) {
+        updateGenerateButtonState();
+      }
+      if (changes.selectedModel) {
+        selectedModelDisplay.textContent = `AI Model: ${changes.selectedModel.newValue}`;
+      }
     }
   });
 
@@ -58,7 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Generate reply
   generateReplyButton.addEventListener('click', async () => {
     statusDisplay.textContent = 'Processing...';
-    const selectedPersona = (await chrome.storage.sync.get(['selectedPersona'])).selectedPersona || 'default';
+    const selectedPersona = personaSelect.value;
     const selectedModel = (await chrome.storage.sync.get(['selectedModel'])).selectedModel || 'chatgpt';
 
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
@@ -71,6 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // } else {
             //   replyToInfoDisplay.style.display = 'none';
             // }
+            console.log('Sending message to background.js with model:', selectedModel);
             chrome.runtime.sendMessage({ 
               action: 'generateReply', 
               content: response.content, 
