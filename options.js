@@ -39,43 +39,75 @@ document.addEventListener('DOMContentLoaded', () => {
       promptsList.innerHTML = '<li style="color: #66757f; font-size: 0.9em;">No custom prompts saved yet.</li>';
       return;
     }
-    customPrompts.forEach((prompt, index) => {
-      const listItem = document.createElement('li');
-      listItem.style.cssText = 'background-color: #f9f9f9; padding: 10px 15px; margin-bottom: 8px; border-radius: 6px; border: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;';
-      listItem.innerHTML = `
-        <span style="font-weight: 500; color: #333;">${prompt.title}</span>
-        <div>
-          <button data-index="${index}" class="edit-prompt-button" style="background-color: #007bff; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 0.85em; transition: background-color 0.3s ease; margin-right: 5px;">Edit</button>
-          <button data-index="${index}" class="delete-prompt-button" style="background-color: #dc3545; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 0.85em; transition: background-color 0.3s ease;">Delete</button>
+    chrome.storage.sync.get(['defaultCustomPromptTitle'], (result) => {
+      const defaultTitle = result.defaultCustomPromptTitle;
+      customPrompts.forEach((prompt, index) => {
+        const listItem = document.createElement('li');
+        listItem.style.cssText = 'background-color: #f9f9f9; padding: 10px 15px; margin-bottom: 8px; border-radius: 6px; border: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;';
+        const isDefault = (prompt.title === defaultTitle);
+        listItem.innerHTML = `
+          <span style="font-weight: 500; color: #333;">${prompt.title} ${isDefault ? '(Default)' : ''}</span>
+        <div style="display: flex; align-items: center;">
+          <button data-index="${index}" class="edit-prompt-button" style="background-color: #007bff; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 0.85em; transition: background-color 0.3s ease; margin-left: 5px;" aria-label="Edit Prompt"><i class="glyphicon glyphicon-pencil"></i></button>
+          <button data-index="${index}" class="set-default-button" style="background-color: #28a745; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 0.85em; transition: background-color 0.3s ease; margin-left: 5px;" aria-label="Set as Default"><i class="glyphicon glyphicon-star"></i></button>
+          <button data-index="${index}" class="delete-prompt-button" style="background-color: #dc3545; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 0.85em; transition: background-color 0.3s ease; margin-left: 5px;" aria-label="Delete Prompt"><i class="glyphicon glyphicon-trash"></i></button>
         </div>
-      `;
-      promptsList.appendChild(listItem);
-    });
-
-    // Add event listeners to edit buttons
-    document.querySelectorAll('.edit-prompt-button').forEach(button => {
-      button.addEventListener('click', (event) => {
-        const indexToEdit = parseInt(event.target.dataset.index);
-        editingIndex = indexToEdit;
-        const promptToEdit = customPrompts[indexToEdit];
-        newPromptTitleInput.value = promptToEdit.title;
-        newPromptContentTextarea.value = promptToEdit.content;
-        addPromptButton.textContent = 'Save Changes';
-        addPromptButton.style.backgroundColor = '#28a745'; // Green for save
-        cancelEditButton.style.display = 'inline-block';
+        `;
+        promptsList.appendChild(listItem);
       });
-    });
 
-    // Add event listeners to delete buttons
-    document.querySelectorAll('.delete-prompt-button').forEach(button => {
-      button.addEventListener('click', (event) => {
-        const indexToDelete = parseInt(event.target.dataset.index);
-        customPrompts.splice(indexToDelete, 1); // Remove prompt from array
-        saveCustomPrompts(); // Save updated array to storage
-        renderCustomPrompts(); // Re-render the list
-        if (editingIndex === indexToDelete) { // If the deleted item was being edited
-          cancelEdit();
-        }
+      // Add event listeners to edit buttons
+      document.querySelectorAll('.edit-prompt-button').forEach(button => {
+        button.addEventListener('click', (event) => {
+          const indexToEdit = parseInt(event.target.dataset.index);
+          editingIndex = indexToEdit;
+          const promptToEdit = customPrompts[indexToEdit];
+          newPromptTitleInput.value = promptToEdit.title;
+          newPromptContentTextarea.value = promptToEdit.content;
+          addPromptButton.innerHTML = '<i class="glyphicon glyphicon-floppy-disk"></i> Save Changes';
+          addPromptButton.style.backgroundColor = '#28a745'; // Green for save
+          cancelEditButton.style.display = 'inline-block';
+        });
+      });
+
+      // Add event listeners to set as default buttons
+      document.querySelectorAll('.set-default-button').forEach(button => {
+        button.addEventListener('click', (event) => {
+          const indexToSetDefault = parseInt(event.target.dataset.index);
+          const promptToSetDefault = customPrompts[indexToSetDefault];
+          chrome.storage.sync.set({ defaultCustomPromptTitle: promptToSetDefault.title }, () => {
+            statusDisplay.textContent = 'Default prompt updated!';
+            setTimeout(() => {
+              statusDisplay.textContent = '';
+            }, 2000);
+            renderCustomPrompts(); // Re-render to show default flag
+          });
+        });
+      });
+
+      // Add event listeners to delete buttons
+      document.querySelectorAll('.delete-prompt-button').forEach(button => {
+        button.addEventListener('click', (event) => {
+          const indexToDelete = parseInt(event.target.dataset.index);
+          const deletedPromptTitle = customPrompts[indexToDelete].title;
+          customPrompts.splice(indexToDelete, 1); // Remove prompt from array
+          saveCustomPrompts(); // Save updated array to storage
+          renderCustomPrompts(); // Re-render the list
+          if (editingIndex === indexToDelete) { // If the deleted item was being edited
+            cancelEdit();
+          }
+          // If the deleted prompt was the default, clear the default setting
+          chrome.storage.sync.get(['defaultCustomPromptTitle'], (result) => {
+            if (result.defaultCustomPromptTitle === deletedPromptTitle) {
+              chrome.storage.sync.remove('defaultCustomPromptTitle', () => {
+                statusDisplay.textContent = 'Default prompt cleared as it was deleted.';
+                setTimeout(() => {
+                  statusDisplay.textContent = '';
+                }, 3000);
+              });
+            }
+          });
+        });
       });
     });
   }
@@ -93,7 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
     editingIndex = -1;
     newPromptTitleInput.value = '';
     newPromptContentTextarea.value = '';
-    addPromptButton.textContent = 'Add New Prompt';
+        addPromptButton.innerHTML = '<i class="glyphicon glyphicon-plus"></i> Add New Prompt';
     addPromptButton.style.backgroundColor = '#007bff'; // Blue for add
     cancelEditButton.style.display = 'none';
   }
@@ -120,19 +152,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Restore settings
   restoreSettingsButton.addEventListener('click', () => {
+    console.log('Restore Settings button clicked.');
     restoreFileInput.click(); // Trigger the hidden file input click
   });
 
   restoreFileInput.addEventListener('change', (event) => {
+    console.log('File input change event triggered.');
     const file = event.target.files[0];
     if (file) {
+      console.log('File selected:', file.name);
       const reader = new FileReader();
       reader.onload = (e) => {
+        console.log('FileReader loaded content.');
         try {
           const restoredSettings = JSON.parse(e.target.result);
+          console.log('Settings parsed:', restoredSettings);
           // Clear current settings before restoring
           chrome.storage.sync.clear(() => {
+            console.log('Storage cleared.');
             chrome.storage.sync.set(restoredSettings, () => {
+              console.log('Settings restored.');
               statusDisplay.textContent = 'Settings restored successfully! Please reload the extension.';
               setTimeout(() => {
                 statusDisplay.textContent = '';
@@ -142,14 +181,16 @@ document.addEventListener('DOMContentLoaded', () => {
             });
           });
         } catch (error) {
+          console.error('Error parsing JSON or restoring settings:', error);
           statusDisplay.textContent = 'Error restoring settings: Invalid JSON file.';
           setTimeout(() => {
             statusDisplay.textContent = '';
           }, 3000);
-          console.error('Error parsing JSON:', error);
         }
       };
       reader.readAsText(file);
+    } else {
+      console.log('No file selected.');
     }
   });
 
@@ -185,7 +226,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (title && content) {
       if (editingIndex !== -1) {
         // Save changes to existing prompt
+        const oldTitle = customPrompts[editingIndex].title;
         customPrompts[editingIndex] = { title, content };
+        // If the edited prompt was the default, update the defaultCustomPromptTitle
+        chrome.storage.sync.get(['defaultCustomPromptTitle'], (result) => {
+          if (result.defaultCustomPromptTitle === oldTitle) {
+            chrome.storage.sync.set({ defaultCustomPromptTitle: title });
+          }
+        });
         cancelEdit();
       } else {
         // Add new prompt

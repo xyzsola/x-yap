@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
   updateGenerateButtonState();
 
   // Load model and custom prompts settings on popup load
-  chrome.storage.sync.get(['selectedModel', 'customPrompts'], (result) => {
+  chrome.storage.sync.get(['selectedModel', 'customPrompts', 'defaultCustomPromptTitle'], (result) => {
     if (result.selectedModel) {
       selectedModelDisplay.textContent = `AI Model: ${result.selectedModel}`;
     } else {
@@ -51,6 +51,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (result.customPrompts) {
       populateCustomPromptDropdown(result.customPrompts);
+      if (result.defaultCustomPromptTitle) {
+        // Find the option with the matching title and set it as selected
+        const defaultOption = Array.from(customPromptDropdown.options).find(
+          option => option.textContent === result.defaultCustomPromptTitle
+        );
+        if (defaultOption) {
+          customPromptDropdown.value = defaultOption.value;
+          selectedCustomPromptContent = defaultOption.value;
+        }
+      }
     }
   });
 

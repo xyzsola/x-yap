@@ -6,6 +6,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
   <style>
     body {
       font-family: 'Inter', sans-serif;
@@ -138,14 +139,14 @@
       <label for="customPrompt">Default Custom System Prompt:</label>
       <textarea id="customPrompt" placeholder="Enter your default custom system prompt here..."></textarea>
 
-      <button id="saveSettings">Save Settings</button>
+      <button id="saveSettings"><i class="glyphicon glyphicon-floppy-disk"></i> Save</button>
 
       <hr style="border: 0; height: 1px; background-color: #ddd; margin: 25px 0;">
 
       <h4>Backup & Restore</h4>
-      <button id="backupSettings" style="background-color: #6c757d;">Backup Settings</button>
+      <button id="backupSettings" style="background-color: #6c757d;"><i class="glyphicon glyphicon-download-alt"></i> Backup</button>
       <input type="file" id="restoreFile" accept=".json" style="display: none;">
-      <button id="restoreSettings" style="background-color: #007bff; margin-top: 8px;">Restore Settings</button>
+      <button id="restoreSettings" style="background-color: #007bff; margin-top: 8px;"><i class="glyphicon glyphicon-upload"></i> Restore</button>
     </div>
 
     <div class="column right">
@@ -157,8 +158,8 @@
         <label for="newPromptContent">Prompt Content:</label>
         <textarea id="newPromptContent" placeholder="Enter the full system prompt content here..."></textarea>
         
-        <button id="addPrompt" style="background-color: #007bff;">Add New Prompt</button>
-        <button id="cancelEdit" style="background-color: #6c757d; display: none;">Cancel Edit</button>
+        <button id="addPrompt" style="background-color: #007bff;"><i class="glyphicon glyphicon-plus"></i> Add New Prompt</button>
+        <button id="cancelEdit" style="background-color: #6c757d; display: none;"><i class="glyphicon glyphicon-remove"></i> Cancel Edit</button>
       </div>
 
       <div id="customPromptsList">
