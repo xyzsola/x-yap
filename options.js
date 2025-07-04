@@ -8,6 +8,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const saveSettingsButton = document.getElementById('saveSettings');
   const statusDisplay = document.getElementById('status');
 
+  // New elements for backup/restore
+  const backupSettingsButton = document.getElementById('backupSettings');
+  const restoreSettingsButton = document.getElementById('restoreSettings');
+  const restoreFileInput = document.getElementById('restoreFile');
+
   // New elements for custom prompt management
   const newPromptTitleInput = document.getElementById('newPromptTitle');
   const newPromptContentTextarea = document.getElementById('newPromptContent');
@@ -92,6 +97,61 @@ document.addEventListener('DOMContentLoaded', () => {
     addPromptButton.style.backgroundColor = '#007bff'; // Blue for add
     cancelEditButton.style.display = 'none';
   }
+
+  // Backup settings
+  backupSettingsButton.addEventListener('click', () => {
+    chrome.storage.sync.get(null, (items) => { // null to get all items
+      const dataStr = JSON.stringify(items, null, 2);
+      const blob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'x-yap-settings-backup.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      statusDisplay.textContent = 'Settings backed up!';
+      setTimeout(() => {
+        statusDisplay.textContent = '';
+      }, 2000);
+    });
+  });
+
+  // Restore settings
+  restoreSettingsButton.addEventListener('click', () => {
+    restoreFileInput.click(); // Trigger the hidden file input click
+  });
+
+  restoreFileInput.addEventListener('change', (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const restoredSettings = JSON.parse(e.target.result);
+          // Clear current settings before restoring
+          chrome.storage.sync.clear(() => {
+            chrome.storage.sync.set(restoredSettings, () => {
+              statusDisplay.textContent = 'Settings restored successfully! Please reload the extension.';
+              setTimeout(() => {
+                statusDisplay.textContent = '';
+              }, 5000);
+              // Reload the options page to reflect changes
+              window.location.reload();
+            });
+          });
+        } catch (error) {
+          statusDisplay.textContent = 'Error restoring settings: Invalid JSON file.';
+          setTimeout(() => {
+            statusDisplay.textContent = '';
+          }, 3000);
+          console.error('Error parsing JSON:', error);
+        }
+      };
+      reader.readAsText(file);
+    }
+  });
 
   // Load settings on options page load
   chrome.storage.sync.get(['selectedModel', 'openaiApiKey', 'geminiApiKey', 'customPrompt', 'customPrompts'], (result) => {

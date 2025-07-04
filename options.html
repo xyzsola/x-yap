@@ -9,7 +9,7 @@
   <style>
     body {
       font-family: 'Inter', sans-serif;
-      width: 350px;
+      width: 800px; /* Increased width for two columns */
       padding: 20px;
       background-color: #f0f0f0;
       color: #1c1e21;
@@ -95,50 +95,80 @@
       font-size: 0.9em;
       color: #1c1e21;
     }
+    .container {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px; /* Space between columns */
+    }
+    .column {
+      flex: 1; /* Each column takes equal width */
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      border: 1px solid #eee;
+    }
+    .column.left {
+      /* Specific styles for the left column if needed */
+    }
+    .column.right {
+      /* Specific styles for the right column if needed */
+    }
   </style>
 </head>
 <body>
   <h3>X-Yap! Settings</h3>
-  <label for="model">AI Model:</label>
-  <select id="model">
-    <option value="chatgpt">ChatGPT</option>
-    <option value="gemini-flash">Gemini Flash</option>
-  </select>
-  
-  <div id="openai-key-container">
-    <label for="apiKey">OpenAI API Key:</label>
-    <input type="text" id="apiKey" placeholder="Enter your OpenAI API key">
-  </div>
-  <div id="gemini-key-container" style="display: none;">
-    <label for="geminiApiKey">Gemini API Key:</label>
-    <input type="text" id="geminiApiKey" placeholder="Enter your Gemini API key">
-  </div>
-  
-  <label for="customPrompt">Default Custom System Prompt:</label>
-  <textarea id="customPrompt" placeholder="Enter your default custom system prompt here..."></textarea>
+  <div class="container">
+    <div class="column left">
+      <h4>General Settings</h4>
+      <label for="model">AI Model:</label>
+      <select id="model">
+        <option value="chatgpt">ChatGPT</option>
+        <option value="gemini-flash">Gemini Flash</option>
+      </select>
+      
+      <div id="openai-key-container">
+        <label for="apiKey">OpenAI API Key:</label>
+        <input type="text" id="apiKey" placeholder="Enter your OpenAI API key">
+      </div>
+      <div id="gemini-key-container" style="display: none;">
+        <label for="geminiApiKey">Gemini API Key:</label>
+        <input type="text" id="geminiApiKey" placeholder="Enter your Gemini API key">
+      </div>
+      
+      <label for="customPrompt">Default Custom System Prompt:</label>
+      <textarea id="customPrompt" placeholder="Enter your default custom system prompt here..."></textarea>
 
-  <hr style="border: 0; height: 1px; background-color: #ddd; margin: 25px 0;">
+      <button id="saveSettings">Save Settings</button>
 
-  <h3>Manage Custom Prompts</h3>
-  <div style="background-color: #fff; padding: 15px; border-radius: 8px; border: 1px solid #eee; margin-bottom: 20px;">
-    <label for="newPromptTitle">Prompt Title:</label>
-    <input type="text" id="newPromptTitle" placeholder="e.g., Professional Tone">
-    
-    <label for="newPromptContent">Prompt Content:</label>
-    <textarea id="newPromptContent" placeholder="Enter the full system prompt content here..."></textarea>
-    
-    <button id="addPrompt" style="background-color: #007bff;">Add New Prompt</button>
-    <button id="cancelEdit" style="background-color: #6c757d; display: none;">Cancel Edit</button>
+      <hr style="border: 0; height: 1px; background-color: #ddd; margin: 25px 0;">
+
+      <h4>Backup & Restore</h4>
+      <button id="backupSettings" style="background-color: #6c757d;">Backup Settings</button>
+      <input type="file" id="restoreFile" accept=".json" style="display: none;">
+      <button id="restoreSettings" style="background-color: #007bff; margin-top: 8px;">Restore Settings</button>
+    </div>
+
+    <div class="column right">
+      <h4>Manage Custom Prompts</h4>
+      <div style="background-color: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px solid #eee; margin-bottom: 20px;">
+        <label for="newPromptTitle">Prompt Title:</label>
+        <input type="text" id="newPromptTitle" placeholder="e.g., Professional Tone">
+        
+        <label for="newPromptContent">Prompt Content:</label>
+        <textarea id="newPromptContent" placeholder="Enter the full system prompt content here..."></textarea>
+        
+        <button id="addPrompt" style="background-color: #007bff;">Add New Prompt</button>
+        <button id="cancelEdit" style="background-color: #6c757d; display: none;">Cancel Edit</button>
+      </div>
+
+      <div id="customPromptsList">
+        <h5>Saved Custom Prompts:</h5>
+        <ul id="promptsList" style="list-style: none; padding: 0;">
+          <!-- Custom prompts will be loaded here -->
+        </ul>
+      </div>
+    </div>
   </div>
-
-  <div id="customPromptsList">
-    <h4>Saved Custom Prompts:</h4>
-    <ul id="promptsList" style="list-style: none; padding: 0;">
-      <!-- Custom prompts will be loaded here -->
-    </ul>
-  </div>
-
-  <button id="saveSettings">Save Settings</button>
   <p id="status"></p>
   <script src="options.js"></script>
 </body>
