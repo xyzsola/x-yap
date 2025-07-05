@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const customPromptTextarea = document.getElementById('customPrompt');
   const saveSettingsButton = document.getElementById('saveSettings');
   const statusDisplay = document.getElementById('status');
+  const toast = document.getElementById('toast');
 
   // New elements for backup/restore
   const backupSettingsButton = document.getElementById('backupSettings');
@@ -22,6 +23,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let customPrompts = []; // Array to store custom prompts
   let editingIndex = -1; // -1 means not editing, otherwise it's the index of the prompt being edited
+
+  function showToast(message) {
+    toast.textContent = message;
+    toast.style.visibility = 'visible';
+    toast.style.opacity = 1;
+    let fadeEffect = setInterval(() => {
+      if (!toast.style.opacity) {
+        toast.style.opacity = 1;
+      }
+      if (toast.style.opacity > 0) {
+        toast.style.opacity -= 0.1;
+      } else {
+        clearInterval(fadeEffect);
+        toast.style.visibility = 'hidden';
+      }
+    }, 200); // Adjust fade speed as needed
+  }
 
   function updateKeyVisibility() {
     if (modelSelect.value === 'gemini-flash') {
@@ -47,11 +65,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const isDefault = (prompt.title === defaultTitle);
         listItem.innerHTML = `
           <span style="font-weight: 500; color: #333;">${prompt.title} ${isDefault ? '(Default)' : ''}</span>
-        <div style="display: flex; align-items: center;">
-          <button data-index="${index}" class="edit-prompt-button" style="background-color: #007bff; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 0.85em; transition: background-color 0.3s ease; margin-left: 5px;" aria-label="Edit Prompt"><i class="glyphicon glyphicon-pencil"></i></button>
-          <button data-index="${index}" class="set-default-button" style="background-color: #28a745; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 0.85em; transition: background-color 0.3s ease; margin-left: 5px;" aria-label="Set as Default"><i class="glyphicon glyphicon-star"></i></button>
-          <button data-index="${index}" class="delete-prompt-button" style="background-color: #dc3545; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 0.85em; transition: background-color 0.3s ease; margin-left: 5px;" aria-label="Delete Prompt"><i class="glyphicon glyphicon-trash"></i></button>
-        </div>
+          <div style="display: flex; align-items: center;">
+            <button data-index="${index}" class="edit-prompt-button" style="background-color: #007bff; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 0.85em; transition: background-color 0.3s ease; margin-left: 5px;" aria-label="Edit Prompt"><i class="glyphicon glyphicon-pencil"></i></button>
+            <button data-index="${index}" class="set-default-button" style="background-color: #28a745; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 0.85em; transition: background-color 0.3s ease; margin-left: 5px;" aria-label="Set as Default"><i class="glyphicon glyphicon-star"></i></button>
+            <button data-index="${index}" class="delete-prompt-button" style="background-color: #dc3545; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 0.85em; transition: background-color 0.3s ease; margin-left: 5px;" aria-label="Delete Prompt"><i class="glyphicon glyphicon-trash"></i></button>
+          </div>
         `;
         promptsList.appendChild(listItem);
       });
@@ -76,10 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
           const indexToSetDefault = parseInt(event.target.dataset.index);
           const promptToSetDefault = customPrompts[indexToSetDefault];
           chrome.storage.sync.set({ defaultCustomPromptTitle: promptToSetDefault.title }, () => {
-            statusDisplay.textContent = 'Default prompt updated!';
-            setTimeout(() => {
-              statusDisplay.textContent = '';
-            }, 2000);
+            showToast('Default prompt updated!');
             renderCustomPrompts(); // Re-render to show default flag
           });
         });
@@ -100,10 +115,7 @@ document.addEventListener('DOMContentLoaded', () => {
           chrome.storage.sync.get(['defaultCustomPromptTitle'], (result) => {
             if (result.defaultCustomPromptTitle === deletedPromptTitle) {
               chrome.storage.sync.remove('defaultCustomPromptTitle', () => {
-                statusDisplay.textContent = 'Default prompt cleared as it was deleted.';
-                setTimeout(() => {
-                  statusDisplay.textContent = '';
-                }, 3000);
+                showToast('Default prompt cleared as it was deleted.');
               });
             }
           });
@@ -114,10 +126,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function saveCustomPrompts() {
     chrome.storage.sync.set({ customPrompts: customPrompts }, () => {
-      statusDisplay.textContent = 'Custom prompts saved!';
-      setTimeout(() => {
-        statusDisplay.textContent = '';
-      }, 2000);
+      showToast('Custom prompts saved!');
     });
   }
 
@@ -143,10 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      statusDisplay.textContent = 'Settings backed up!';
-      setTimeout(() => {
-        statusDisplay.textContent = '';
-      }, 2000);
+      showToast('Settings backed up!');
     });
   });
 
@@ -172,20 +178,14 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('Storage cleared.');
             chrome.storage.sync.set(restoredSettings, () => {
               console.log('Settings restored.');
-              statusDisplay.textContent = 'Settings restored successfully! Please reload the extension.';
-              setTimeout(() => {
-                statusDisplay.textContent = '';
-              }, 5000);
+              showToast('Settings restored successfully! Please reload the extension.');
               // Reload the options page to reflect changes
               window.location.reload();
             });
           });
         } catch (error) {
           console.error('Error parsing JSON or restoring settings:', error);
-          statusDisplay.textContent = 'Error restoring settings: Invalid JSON file.';
-          setTimeout(() => {
-            statusDisplay.textContent = '';
-          }, 3000);
+          showToast('Error restoring settings: Invalid JSON file.');
         }
       };
       reader.readAsText(file);
@@ -266,10 +266,7 @@ document.addEventListener('DOMContentLoaded', () => {
       geminiApiKey: geminiApiKey,
       customPrompt: customPrompt
     }, () => {
-      statusDisplay.textContent = 'Settings saved!';
-      setTimeout(() => {
-        statusDisplay.textContent = '';
-      }, 2000);
+      showToast('Settings saved!');
     });
   });
 });
