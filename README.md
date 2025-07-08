@@ -1,4 +1,4 @@
-## X-Yap!
+## xYap!
 
 This Chrome extension generates replies for X (formerly Twitter) content based on your chosen persona and AI model.
 
@@ -15,11 +15,11 @@ This Chrome extension generates replies for X (formerly Twitter) content based o
 
 3.  **Pin the Extension (Optional but Recommended):**
     *   Click the puzzle piece icon next to your profile avatar in Chrome.
-    *   Click the pin icon next to "X-Yap!" to make it easily accessible in your toolbar.
+    *   Click the pin icon next to "xYap!" to make it easily accessible in your toolbar.
 
 ### API Keys
 
-X-Yap! requires API keys for the AI models it uses. You will need to obtain these separately.
+xYap! requires API keys for the AI models it uses. You will need to obtain these separately.
 
 *   **OpenAI API Key (for ChatGPT models):**
     1.  Go to the OpenAI API platform: [https://platform.openai.com/](https://platform.openai.com/)
@@ -38,7 +38,7 @@ X-Yap! requires API keys for the AI models it uses. You will need to obtain thes
 ### Usage
 
 1.  **Configure Settings:**
-    *   Click the X-Yap! extension icon in your Chrome toolbar.
+    *   Click the xYap! extension icon in your Chrome toolbar.
     *   Click the settings icon (gear) to open the options page.
     *   Enter your OpenAI and/or Gemini API keys.
     *   Select your preferred AI Model (ChatGPT or Gemini Flash).
@@ -47,7 +47,7 @@ X-Yap! requires API keys for the AI models it uses. You will need to obtain thes
 
 2.  **Generate Replies:**
     *   Navigate to an X (Twitter) post.
-    *   Click the X-Yap! extension icon.
+    *   Click the xYap! extension icon.
     *   Select a persona (if not already set in options).
     *   Click "Generate Yap!" to get a reply.
     *   The generated reply will appear in the popup and can be copied to your clipboard by clicking on it.

@@ -1,41 +1,42 @@
 {
   "manifest_version": 3,
-  "name": "X Yapping",
+  "name": "xYap!",
   "version": "1.0",
-  "description": "Generates reply messages for X posts.",
+  "description": "Generate replies for X (formerly Twitter) posts using AI.",
   "permissions": [
     "activeTab",
     "scripting",
     "storage"
   ],
-  "icons": { 
-    "16": "icons/icon16.png",
-    "48": "icons/icon48.png",
-    "128": "icons/icon128.png"
-  },
   "host_permissions": [
     "https://x.com/*",
-    "https://api.openai.com/*",
-    "https://fonts.googleapis.com/*"
-  ],
-  "content_scripts": [
-    {
-      "matches": ["https://x.com/*"],
-      "js": ["content.js"],
-      "run_at": "document_end"
-    }
+    "https://api.openai.com/",
+    "https://generativelanguage.googleapis.com/"
   ],
   "background": {
     "service_worker": "background.js"
   },
+  "content_scripts": [
+    {
+      "matches": ["https://twitter.com/*", "https://x.com/*"],
+      "js": ["content.js"],
+      "css": ["styles.css"],
+      "run_at": "document_idle"
+    }
+  ],
   "action": {
     "default_popup": "popup.html",
-    "default_title": "Generate X Reply",
-    "default_icon": { 
+    "default_icon": {
       "16": "icons/icon16.png",
       "48": "icons/icon48.png",
       "128": "icons/icon128.png"
-    }
+    },
+    "default_title": "xYap!"
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
   },
   "options_page": "options.html"
 }
