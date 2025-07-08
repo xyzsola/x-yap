@@ -1,15 +1,18 @@
 // Function to generate reply using OpenAI API
-async function generateReply(content, model = 'chatgpt', customPromptFromPopup = '') {
-  console.log('generateReply function called with model:', model);
-  console.log('customPromptFromPopup received:', customPromptFromPopup);
+async function generateReply(content, options = {}) {
+  const { mode, customPrompt: customPromptFromPopup } = options;
+  console.log('generateReply function called with options:', options);
 
-  const keysAndPrompt = await new Promise((resolve) => {
-    chrome.storage.sync.get(['openaiApiKey', 'geminiApiKey', 'customPrompt'], (result) => {
+  const { openaiApiKey, geminiApiKey, customPrompt, selectedModel } = await new Promise((resolve) => {
+    chrome.storage.sync.get(['openaiApiKey', 'geminiApiKey', 'customPrompt', 'selectedModel'], (result) => {
       resolve(result);
     });
   });
 
-  const apiKey = model.startsWith('gemini') ? keysAndPrompt.geminiApiKey : keysAndPrompt.openaiApiKey;
+  const model = selectedModel || 'chatgpt';
+  console.log('Using model from storage:', model);
+
+  const apiKey = model.startsWith('gemini') ? geminiApiKey : openaiApiKey;
   console.log('Using API Key for model:', model, 'Key exists:', !!apiKey);
   if (!apiKey) {
     return `No API key set for ${model}. Please save your API key in the extension popup.`
@@ -20,8 +23,30 @@ async function generateReply(content, model = 'chatgpt', customPromptFromPopup =
   if (customPromptFromPopup) {
     system_prompt = customPromptFromPopup;
     console.log('Using custom prompt from popup:', system_prompt);
-  } else if (keysAndPrompt.customPrompt) { // Otherwise, use the default custom prompt from settings
-    system_prompt = keysAndPrompt.customPrompt;
+  } else if (mode) {
+    switch (mode) {
+      case 'casual':
+        system_prompt = 'You are my assistant. Create a casual and friendly reply to the following content. Keep it short and in English, under 250 characters.';
+        break;
+      case 'professional':
+        system_prompt = 'You are my professional assistant. Formulate a formal and respectful reply to the following content. The reply should be in English and concise, with a maximum of 250 characters.';
+        break;
+      case 'witty':
+        system_prompt = 'You are a witty assistant. Come up with a clever and humorous reply to the following content. The reply must be in English and not exceed 250 characters.';
+        break;
+      case 'sarcastic':
+        system_prompt = 'You are a sarcastic assistant. Generate a sarcastic reply to the following content. Ensure the reply is in English and within the 250-character limit.';
+        break;
+      case 'standard':
+      default:
+        if (customPrompt) {
+          system_prompt = customPrompt;
+          console.log('Using default custom prompt from settings for standard mode:', system_prompt);
+        }
+        break;
+    }
+  } else if (customPrompt) {
+    system_prompt = customPrompt;
     console.log('Using default custom prompt from settings:', system_prompt);
   } else {
     console.log('Using default system prompt.', system_prompt);
@@ -94,7 +119,7 @@ async function generateReply(content, model = 'chatgpt', customPromptFromPopup =
 // Handle messages
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'generateReply') {
-    generateReply(request.content, request.model, request.customPrompt)
+    generateReply(request.content, { mode: request.mode, customPrompt: request.customPrompt })
       .then((reply) => {
         sendResponse({ reply });
       })

@@ -33,6 +33,47 @@ function addReplyButton(replyTextarea, replyContainer) {
     generateReplyButton.style.backgroundColor = "#1DA1F2";
   });
 
+  const customPromptDropdown = document.createElement("select");
+  customPromptDropdown.className = "custom-prompt-dropdown";
+  customPromptDropdown.style.cssText = `
+    background-color: #1DA1F2;
+    color: white;
+    border: none;
+    padding: 9px 12px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 14px;
+    font-family: 'Inter', sans-serif;
+    margin-left: 8px;
+    transition: background-color 0.3s ease;
+  `;
+
+  function populateCustomPromptDropdown(customPrompts) {
+    customPromptDropdown.innerHTML = '<option value="">None</option>'; // Default option
+    if (customPrompts && customPrompts.length > 0) {
+      customPrompts.forEach(prompt => {
+        const option = document.createElement('option');
+        option.value = prompt.content; // Store content in value
+        option.textContent = prompt.title;
+        customPromptDropdown.appendChild(option);
+      });
+    }
+  }
+
+  chrome.storage.sync.get(['customPrompts', 'defaultCustomPromptTitle'], (result) => {
+    if (result.customPrompts) {
+      populateCustomPromptDropdown(result.customPrompts);
+      if (result.defaultCustomPromptTitle) {
+        const defaultOption = Array.from(customPromptDropdown.options).find(
+          option => option.textContent === result.defaultCustomPromptTitle
+        );
+        if (defaultOption) {
+          customPromptDropdown.value = defaultOption.value;
+        }
+      }
+    }
+  });
+
   generateReplyButton.addEventListener("click", async () => {
     const article = replyContainer.closest("article");
     const dialog = replyContainer.closest('div[role="dialog"]');
@@ -49,9 +90,11 @@ function addReplyButton(replyTextarea, replyContainer) {
 
     if (!postContent) postContent = "No content found";
 
+    const selectedPrompt = customPromptDropdown.value;
+
     // Kirim ke background script
     chrome.runtime.sendMessage(
-      { action: "generateReply", content: postContent },
+      { action: "generateReply", content: postContent, customPrompt: selectedPrompt },
       (response) => {
         console.log(`reply from ai`, response)
         if (response?.reply) {
@@ -78,6 +121,7 @@ function addReplyButton(replyTextarea, replyContainer) {
   });
 
   wrapper.appendChild(generateReplyButton);
+  wrapper.appendChild(customPromptDropdown);
   return wrapper; 
 }
 
