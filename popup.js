@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const errorDisplay = document.getElementById('error');
   const resultDisplay = document.getElementById('result');
   const openSettingsButton = document.getElementById('openSettings');
+  const repliesContainer = document.getElementById('replies-container');
   
   const selectedModelDisplay = document.getElementById('selected-model-display');
   const customPromptDropdown = document.getElementById('customPromptDropdown');
@@ -107,6 +108,60 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
   });
+  
+  // Function to copy reply to clipboard
+  function copyReplyToClipboard(replyText, buttonElement) {
+    navigator.clipboard.writeText(replyText).then(() => {
+      const originalText = buttonElement.textContent;
+      buttonElement.textContent = 'Copied!';
+      buttonElement.classList.add('copied');
+      setTimeout(() => {
+        buttonElement.textContent = originalText;
+        buttonElement.classList.remove('copied');
+      }, 1500);
+    }).catch(err => {
+      console.error('Failed to copy text: ', err);
+      statusDisplay.textContent = 'Failed to copy.';
+    });
+  }
+  
+  // Function to display multiple replies
+  function displayReplies(replies) {
+    repliesContainer.style.display = 'block';
+    resultDisplay.style.display = 'none';
+    
+    replies.forEach((reply, index) => {
+      const optionElement = document.getElementById(`reply-option-${index + 1}`);
+      const labelElement = optionElement.querySelector('.reply-label');
+      const contentElement = optionElement.querySelector('.reply-content');
+      const copyButton = optionElement.querySelector('.copy-btn');
+      
+      labelElement.textContent = reply.name;
+      contentElement.textContent = reply.content;
+      
+      // Remove existing event listeners
+      const newCopyButton = copyButton.cloneNode(true);
+      copyButton.parentNode.replaceChild(newCopyButton, copyButton);
+      
+      const newContentElement = contentElement.cloneNode(true);
+      contentElement.parentNode.replaceChild(newContentElement, contentElement);
+      
+      // Add new event listeners
+      newCopyButton.addEventListener('click', () => {
+        copyReplyToClipboard(reply.content, newCopyButton);
+      });
+      
+      newContentElement.addEventListener('click', () => {
+        copyReplyToClipboard(reply.content, newCopyButton);
+      });
+    });
+  }
+  
+  // Function to hide replies and show single result
+  function hideReplies() {
+    repliesContainer.style.display = 'none';
+    resultDisplay.style.display = 'block';
+  }
 
   // Generate reply
   generateReplyButton.addEventListener('click', async () => {
@@ -124,13 +179,16 @@ document.addEventListener('DOMContentLoaded', () => {
               model: selectedModel,
               customPrompt: selectedCustomPromptContent // Pass the selected custom prompt content
             }, (replyResponse) => {
-              if (replyResponse?.reply) {
-                chrome.tabs.sendMessage(tabs[0].id, { action: 'insertReply', reply: replyResponse.reply }, () => {
-                  statusDisplay.textContent = 'Yap generated!';
-                  resultDisplay.textContent = replyResponse.reply;
-                });
+              if (replyResponse?.replies) {
+                statusDisplay.textContent = 'Yap generated! Choose one:';
+                displayReplies(replyResponse.replies);
+              } else if (replyResponse?.error) {
+                statusDisplay.textContent = 'Failed to generate reply.';
+                showErrorMessage(replyResponse.error);
+                hideReplies();
               } else {
                 statusDisplay.textContent = 'Failed to generate reply.';
+                hideReplies();
               }
             });
           } else {
